@@ -4,19 +4,22 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 
 	"network-proxy/config"
 	"network-proxy/proxy"
 )
 
 func main() {
+	// 日志同时写入文件
+	exePath, _ := os.Executable()
+	logFile, err := os.OpenFile(filepath.Join(filepath.Dir(exePath), "service.log"),
+		os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err == nil {
+		log.SetOutput(logFile)
+	}
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("[Main] Network Proxy 启动中...")
-
-	cfg, err := config.LoadConfig("")
-	if err != nil {
-		log.Fatalf("[Main] 加载配置失败: %v", err)
-	}
 
 	// Windows服务模式
 	isService, err := svcIsService()
@@ -24,23 +27,26 @@ func main() {
 		log.Fatalf("[Main] 检测服务状态失败: %v", err)
 	}
 	if isService {
+		log.Println("[Main] 以Windows服务模式运行")
 		runService("NetworkProxy")
 		return
 	}
 
 	// 控制台模式
-	runProxyWithSignal(cfg)
+	log.Println("[Main] 以控制台模式运行")
+	runProxyWithSignal()
 }
 
 func runProxy() {
+	runProxyWithSignal()
+}
+
+func runProxyWithSignal() {
 	cfg, err := config.LoadConfig("")
 	if err != nil {
 		log.Fatalf("[Main] 加载配置失败: %v", err)
 	}
-	runProxyWithSignal(cfg)
-}
 
-func runProxyWithSignal(cfg *config.Config) {
 	// 启动HTTP代理
 	if cfg.HTTP.Enabled {
 		go func() {

@@ -7,7 +7,3 @@ func svcIsService() (bool, error) {
 }
 
 func runService(name string) {}
-
-func runProxy() {
-	runProxyWithSignal(nil)
-}

@@ -4,8 +4,6 @@ package main
 
 import (
 	"log"
-	"os"
-	"sync"
 	"time"
 
 	"golang.org/x/sys/windows/svc"
@@ -13,7 +11,6 @@ import (
 
 type proxyService struct {
 	stopCh chan struct{}
-	wg     sync.WaitGroup
 }
 
 func (s *proxyService) Execute(args []string, r <-chan svc.ChangeRequest, status chan<- svc.Status) (bool, uint32) {
@@ -55,7 +52,7 @@ loop:
 func runService(name string) {
 	err := svc.Run(name, &proxyService{})
 	if err != nil {
-		log.Printf("[Service] 服务启动失败: %v", err)
-		os.Exit(1)
+		log.Printf("[Service] svc.Run 失败: %v", err)
+		return
 	}
 }
