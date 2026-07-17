@@ -125,6 +125,9 @@ echo   Uninstall:    run uninstall.bat
 echo.
 echo   Proxy: YOUR_IP:8080 (HTTP) / YOUR_IP:1080 (SOCKS5)
 echo   Config: edit config.yaml then restart service
+echo.
+echo   If you changed ports in config.yaml, update firewall:
+echo     netsh advfirewall firewall add rule name="Proxy" dir=in action=allow protocol=TCP localport=YOUR_PORT
 echo ============================================
 echo.
 pause
