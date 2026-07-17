@@ -48,7 +48,25 @@ exit /b 1
 echo   Program file ready: %EXE_NAME%
 
 echo.
-echo [2/6] Install service...
+echo [2/6] Read config...
+set "HTTP_PORT=8080"
+set "SOCKS5_PORT=1080"
+set "FIRST=1"
+if exist "%INSTALL_DIR%\config.yaml" (
+    for /f "usebackq tokens=2" %%a in (`findstr /c:"  port:" "%INSTALL_DIR%\config.yaml"`) do (
+        if defined FIRST (
+            set "HTTP_PORT=%%a"
+            set "FIRST="
+        ) else (
+            set "SOCKS5_PORT=%%a"
+        )
+    )
+)
+echo   HTTP port: %HTTP_PORT%
+echo   SOCKS5 port: %SOCKS5_PORT%
+
+echo.
+echo [3/6] Install service...
 set "EXE_PATH=%INSTALL_DIR%\%EXE_NAME%"
 sc create %SERVICE_NAME% binPath= "%EXE_PATH%" start= auto DisplayName= "Network Proxy Service"
 if %errorlevel% neq 0 (
@@ -60,35 +78,35 @@ if %errorlevel% neq 0 (
 echo   Service created.
 
 echo.
-echo [3/6] Configure service...
+echo [4/6] Configure service...
 sc description %SERVICE_NAME% "Lightweight proxy service - HTTP and SOCKS5"
 sc failure %SERVICE_NAME% actions= restart/60000/restart/60000/restart/60000 reset= 86400
 echo   Service configured (auto-restart enabled).
 
 echo.
-echo [4/6] Configure firewall...
+echo [5/6] Configure firewall...
 :: Delete old rules if exist
 netsh advfirewall firewall delete rule name="Network Proxy HTTP" >nul 2>&1
 netsh advfirewall firewall delete rule name="Network Proxy SOCKS5" >nul 2>&1
 
-:: Add HTTP rule (default port 8080)
-netsh advfirewall firewall add rule name="Network Proxy HTTP" dir=in action=allow protocol=TCP localport=8080 >nul 2>&1
+:: Add HTTP rule
+netsh advfirewall firewall add rule name="Network Proxy HTTP" dir=in action=allow protocol=TCP localport=%HTTP_PORT% >nul 2>&1
 if %errorlevel% equ 0 (
-    echo   Firewall rule added: HTTP port 8080
+    echo   Firewall rule added: HTTP port %HTTP_PORT%
 ) else (
-    echo   [WARN] HTTP firewall rule failed, please open port 8080 manually
+    echo   [WARN] HTTP firewall rule failed, please open port %HTTP_PORT% manually
 )
 
-:: Add SOCKS5 rule (default port 1080)
-netsh advfirewall firewall add rule name="Network Proxy SOCKS5" dir=in action=allow protocol=TCP localport=1080 >nul 2>&1
+:: Add SOCKS5 rule
+netsh advfirewall firewall add rule name="Network Proxy SOCKS5" dir=in action=allow protocol=TCP localport=%SOCKS5_PORT% >nul 2>&1
 if %errorlevel% equ 0 (
-    echo   Firewall rule added: SOCKS5 port 1080
+    echo   Firewall rule added: SOCKS5 port %SOCKS5_PORT%
 ) else (
-    echo   [WARN] SOCKS5 firewall rule failed, please open port 1080 manually
+    echo   [WARN] SOCKS5 firewall rule failed, please open port %SOCKS5_PORT% manually
 )
 
 echo.
-echo [5/6] Start service...
+echo [6/6] Start service...
 sc start %SERVICE_NAME%
 if %errorlevel% neq 0 (
     echo [WARN] Service start failed. Check config.yaml and service.log.
@@ -98,7 +116,7 @@ if %errorlevel% neq 0 (
 echo   Service started!
 
 echo.
-echo [6/6] Verify service...
+echo [7/7] Verify service...
 timeout /t 2 /nobreak >nul
 sc query %SERVICE_NAME% | find "RUNNING" >nul
 if %errorlevel% equ 0 (
@@ -123,11 +141,8 @@ echo   Stop service: net stop %SERVICE_NAME%
 echo   Start service: net start %SERVICE_NAME%
 echo   Uninstall:    run uninstall.bat
 echo.
-echo   Proxy: YOUR_IP:8080 (HTTP) / YOUR_IP:1080 (SOCKS5)
+echo   Proxy: YOUR_IP:%HTTP_PORT% (HTTP) / YOUR_IP:%SOCKS5_PORT% (SOCKS5)
 echo   Config: edit config.yaml then restart service
-echo.
-echo   If you changed ports in config.yaml, update firewall:
-echo     netsh advfirewall firewall add rule name="Proxy" dir=in action=allow protocol=TCP localport=YOUR_PORT
 echo ============================================
 echo.
 pause
