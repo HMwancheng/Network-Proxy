@@ -1,0 +1,75 @@
+name: Build
+
+on:
+  push:
+    branches: [main, master]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, 386]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.20'
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Build
+        env:
+          GOOS: windows
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: 0
+        run: |
+          go build -ldflags="-s -w -H windowsgui" -o network-proxy-${{ matrix.arch }}.exe .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: network-proxy-windows-${{ matrix.arch }}
+          path: network-proxy-${{ matrix.arch }}.exe
+
+  package:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download amd64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: network-proxy-windows-amd64
+
+      - name: Download 386 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: network-proxy-windows-386
+
+      - name: Create release package
+        run: |
+          mkdir -p release
+          cp network-proxy-amd64.exe release/
+          cp network-proxy-386.exe release/
+          cp config.yaml release/
+          cp install.bat release/
+          cp uninstall.bat release/
+          cp disable_telemetry.bat release/
+
+      - name: Upload release package
+        uses: actions/upload-artifact@v4
+        with:
+          name: network-proxy-package
+          path: release/
