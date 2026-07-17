@@ -3,6 +3,12 @@
 network-proxy-amd64.exe
 network-proxy-386.exe
 
+# 下载产物目录
+dist/
+release-new/
+network-proxy-package/
+network-proxy-package-new/
+
 # IDE
 .idea/
 .vscode/
