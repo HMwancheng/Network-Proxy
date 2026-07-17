@@ -1,51 +1,50 @@
 @echo off
-chcp 65001 >nul
-title Network Proxy 卸载
+chcp 936 >nul
+title Network Proxy Uninstall
 
-:: 检查管理员权限
 net session >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [错误] 请以管理员身份运行此脚本！
-    echo 右键此文件 -> 以管理员身份运行
+    echo [ERROR] Please run as Administrator!
+    echo Right-click this file - Run as Administrator
     pause
     exit /b 1
 )
 
 echo ============================================
-echo   Network Proxy 卸载脚本
+echo   Network Proxy Uninstall
 echo ============================================
 echo.
 
 set "SERVICE_NAME=NetworkProxy"
 
-echo [1/4] 停止服务...
+echo [1/4] Stop service...
 sc stop %SERVICE_NAME% >nul 2>&1
-echo   服务已停止
+echo   Service stopped.
 
 echo.
-echo [2/4] 删除服务...
+echo [2/4] Delete service...
 sc delete %SERVICE_NAME%
 if %errorlevel% neq 0 (
-    echo [信息] 服务可能已不存在
+    echo   Service may already be removed.
 ) else (
-    echo   服务已删除
+    echo   Service deleted.
 )
 
 echo.
-echo [3/4] 删除防火墙规则...
+echo [3/4] Remove firewall rules...
 netsh advfirewall firewall delete rule name="Network Proxy HTTP" >nul 2>&1
 netsh advfirewall firewall delete rule name="Network Proxy SOCKS5" >nul 2>&1
-echo   防火墙规则已清理
+echo   Firewall rules removed.
 
 echo.
-echo [4/4] 清理完成
+echo [4/4] Cleanup done.
 
 echo.
 echo ============================================
-echo   卸载完成！
+echo   Uninstall Complete!
 echo.
-echo   注意: 程序文件和配置文件未被删除
-echo   如需完全清除，请手动删除此文件夹
+echo   Note: Program files and config not deleted.
+echo   Delete this folder manually if needed.
 echo ============================================
 echo.
 pause

@@ -1,102 +1,95 @@
 @echo off
-chcp 65001 >nul
-title 禁用 Windows 数据收集服务
+chcp 936 >nul
+title Disable Windows Telemetry
 
-:: 检查管理员权限
 net session >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [错误] 请以管理员身份运行此脚本！
-    echo 右键此文件 -> 以管理员身份运行
+    echo [ERROR] Please run as Administrator!
+    echo Right-click this file - Run as Administrator
     pause
     exit /b 1
 )
 
 echo ============================================
-echo   禁用 Windows 数据收集和遥测服务
+echo   Disable Windows Telemetry Services
 echo ============================================
 echo.
-echo 此工具将禁用以下服务:
-echo   - DiagTrack   (诊断跟踪服务)
-echo   - dmwappushsvc (设备管理WAP推送)
-echo   - DoSvc       (传递优化服务)
-echo   - WSearch     (Windows Search - 可选)
-echo   - SysMain     (Superfetch - 可选)
+echo This tool will disable:
+echo   - DiagTrack   (Diagnostics Tracking)
+echo   - dmwappushsvc (Device Management WAP Push)
+echo   - DoSvc       (Delivery Optimization)
+echo   - WSearch     (Windows Search - optional)
+echo   - SysMain     (Superfetch - optional)
 echo.
 
 set "DISABLED=0"
 set "SKIPPED=0"
 
-:: 禁用诊断跟踪服务 (Connected User Experiences and Telemetry)
-echo [1] 禁用 DiagTrack (诊断跟踪)...
+echo [1] Disabling DiagTrack...
 sc query DiagTrack >nul 2>&1
 if %errorlevel% equ 0 (
     sc stop DiagTrack >nul 2>&1
     sc config DiagTrack start= disabled >nul 2>&1
-    echo   已禁用 DiagTrack
+    echo   DiagTrack disabled.
     set /a DISABLED+=1
 ) else (
-    echo   DiagTrack 不存在，跳过
+    echo   DiagTrack not found, skipped.
     set /a SKIPPED+=1
 )
 
-:: 禁用设备管理无线应用协议推送服务
-echo [2] 禁用 dmwappushsvc (设备管理推送)...
+echo [2] Disabling dmwappushsvc...
 sc query dmwappushsvc >nul 2>&1
 if %errorlevel% equ 0 (
     sc stop dmwappushsvc >nul 2>&1
     sc config dmwappushsvc start= disabled >nul 2>&1
-    echo   已禁用 dmwappushsvc
+    echo   dmwappushsvc disabled.
     set /a DISABLED+=1
 ) else (
-    echo   dmwappushsvc 不存在，跳过
+    echo   dmwappushsvc not found, skipped.
     set /a SKIPPED+=1
 )
 
-:: 禁用传递优化服务
-echo [3] 禁用 DoSvc (传递优化)...
+echo [3] Disabling DoSvc...
 sc query DoSvc >nul 2>&1
 if %errorlevel% equ 0 (
     sc stop DoSvc >nul 2>&1
     sc config DoSvc start= disabled >nul 2>&1
-    echo   已禁用 DoSvc
+    echo   DoSvc disabled.
     set /a DISABLED+=1
 ) else (
-    echo   DoSvc 不存在，跳过
+    echo   DoSvc not found, skipped.
     set /a SKIPPED+=1
 )
 
-:: 禁用 Windows Search (可选，会禁用文件索引)
-echo [4] 禁用 WSearch (Windows Search)...
+echo [4] Disabling WSearch...
 sc query WSearch >nul 2>&1
 if %errorlevel% equ 0 (
     sc stop WSearch >nul 2>&1
     sc config WSearch start= disabled >nul 2>&1
-    echo   已禁用 WSearch
+    echo   WSearch disabled.
     set /a DISABLED+=1
 ) else (
-    echo   WSearch 不存在，跳过
+    echo   WSearch not found, skipped.
     set /a SKIPPED+=1
 )
 
-:: 禁用 Superfetch / SysMain
-echo [5] 禁用 SysMain (Superfetch)...
+echo [5] Disabling SysMain...
 sc query SysMain >nul 2>&1
 if %errorlevel% equ 0 (
     sc stop SysMain >nul 2>&1
     sc config SysMain start= disabled >nul 2>&1
-    echo   已禁用 SysMain
+    echo   SysMain disabled.
     set /a DISABLED+=1
 ) else (
-    echo   SysMain 不存在，跳过
+    echo   SysMain not found, skipped.
     set /a SKIPPED+=1
 )
 
 echo.
 echo ============================================
-echo   完成！已禁用 %DISABLED% 个服务，跳过 %SKIPPED% 个
+echo   Done! Disabled %DISABLED% service(s), skipped %SKIPPED%.
 echo.
-echo 提示: 如需恢复，可将对应服务启动类型改为"自动"
-echo   例如: sc config DiagTrack start= auto
+echo   To restore: sc config [ServiceName] start= auto
 echo ============================================
 echo.
 pause

@@ -70,6 +70,10 @@ jobs:
           cp uninstall.bat release/
           cp disable_telemetry.bat release/
 
+      - name: Convert bat files to CRLF
+        run: |
+          sed -i 's/$/\r/' release/*.bat
+
       - name: Upload release package
         uses: actions/upload-artifact@v4
         with:
