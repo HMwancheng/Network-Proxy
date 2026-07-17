@@ -18,12 +18,12 @@ echo.
 
 set "SERVICE_NAME=NetworkProxy"
 
-echo [1/4] 停止服务...
+echo [1/3] 停止服务...
 sc stop %SERVICE_NAME% >nul 2>&1
 echo   服务已停止
 
 echo.
-echo [2/4] 删除服务...
+echo [2/3] 删除服务...
 sc delete %SERVICE_NAME%
 if %errorlevel% neq 0 (
     echo [信息] 服务可能已不存在
@@ -32,13 +32,7 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [3/4] 删除防火墙规则...
-netsh advfirewall firewall delete rule name="Network Proxy HTTP" >nul 2>&1
-netsh advfirewall firewall delete rule name="Network Proxy SOCKS5" >nul 2>&1
-echo   防火墙规则已清理
-
-echo.
-echo [4/4] 清理完成
+echo [3/3] 清理完成
 
 echo.
 echo ============================================
