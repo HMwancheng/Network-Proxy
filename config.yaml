@@ -6,6 +6,10 @@
 # 或通过 services.msc 重启
 # ===========================================
 
+# 是否输出运行日志到 service.log 文件 (true/false)
+# 默认 false，不产生日志文件。调试时建议设为 true
+log_enabled: false
+
 # HTTP 代理配置
 http:
   # 是否启用HTTP代理 (true/false)

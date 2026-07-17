@@ -10,8 +10,9 @@ import (
 
 // Config 代理配置
 type Config struct {
-	HTTP   HTTPConfig   `yaml:"http"`
-	SOCKS5 SOCKS5Config `yaml:"socks5"`
+	LogEnabled bool         `yaml:"log_enabled"`
+	HTTP       HTTPConfig   `yaml:"http"`
+	SOCKS5     SOCKS5Config `yaml:"socks5"`
 }
 
 // HTTPConfig HTTP代理配置

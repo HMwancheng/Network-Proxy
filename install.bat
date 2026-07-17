@@ -22,20 +22,31 @@ set "EXE_NAME=network-proxy.exe"
 
 echo [1/6] Check program file...
 
+:: 如果已有 network-proxy.exe 则直接使用
 if exist "%INSTALL_DIR%\%EXE_NAME%" (
     echo   Found: %EXE_NAME%
     goto :install_service
 )
 
+:: 自动检测系统架构并复制对应版本
+if "%PROCESSOR_ARCHITECTURE%"=="AMD64" goto :copy_64
+if "%PROCESSOR_ARCHITEW6432%"=="AMD64" goto :copy_64
+goto :copy_32
+
+:copy_64
+echo   Detected 64-bit system.
 if exist "%INSTALL_DIR%\network-proxy-amd64.exe" (
-    echo   Found 64-bit version, renaming to %EXE_NAME% ...
-    ren "%INSTALL_DIR%\network-proxy-amd64.exe" "%EXE_NAME%"
+    echo   Copying network-proxy-amd64.exe to %EXE_NAME% ...
+    copy /y "%INSTALL_DIR%\network-proxy-amd64.exe" "%INSTALL_DIR%\%EXE_NAME%" >nul
     goto :install_service
 )
+echo   [WARN] network-proxy-amd64.exe not found, trying 32-bit version...
 
+:copy_32
+echo   Detected 32-bit system.
 if exist "%INSTALL_DIR%\network-proxy-386.exe" (
-    echo   Found 32-bit version, renaming to %EXE_NAME% ...
-    ren "%INSTALL_DIR%\network-proxy-386.exe" "%EXE_NAME%"
+    echo   Copying network-proxy-386.exe to %EXE_NAME% ...
+    copy /y "%INSTALL_DIR%\network-proxy-386.exe" "%INSTALL_DIR%\%EXE_NAME%" >nul
     goto :install_service
 )
 
@@ -125,7 +136,7 @@ if %errorlevel% equ 0 (
     echo [WARN] Service not running. Check:
     echo   1. config.yaml in same folder
     echo   2. Port not in use by other programs
-    echo   3. service.log for error details
+    echo   3. Set log_enabled: true in config.yaml, reinstall, check service.log
     echo   Run: sc query %SERVICE_NAME%
 )
 

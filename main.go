@@ -11,14 +11,23 @@ import (
 )
 
 func main() {
-	// 日志同时写入文件
-	exePath, _ := os.Executable()
-	logFile, err := os.OpenFile(filepath.Join(filepath.Dir(exePath), "service.log"),
-		os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	if err == nil {
-		log.SetOutput(logFile)
-	}
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	cfg, err := config.LoadConfig("")
+	if err != nil {
+		log.Fatalf("[Main] 加载配置失败: %v", err)
+	}
+
+	// 仅在配置开启时才写入日志文件
+	if cfg.LogEnabled {
+		exePath, _ := os.Executable()
+		logFile, err := os.OpenFile(filepath.Join(filepath.Dir(exePath), "service.log"),
+			os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		if err == nil {
+			log.SetOutput(logFile)
+		}
+	}
+
 	log.Println("[Main] Network Proxy 启动中...")
 
 	// Windows服务模式
@@ -34,19 +43,18 @@ func main() {
 
 	// 控制台模式
 	log.Println("[Main] 以控制台模式运行")
-	runProxyWithSignal()
+	runProxyWithSignal(cfg)
 }
 
 func runProxy() {
-	runProxyWithSignal()
-}
-
-func runProxyWithSignal() {
 	cfg, err := config.LoadConfig("")
 	if err != nil {
 		log.Fatalf("[Main] 加载配置失败: %v", err)
 	}
+	runProxyWithSignal(cfg)
+}
 
+func runProxyWithSignal(cfg *config.Config) {
 	// 启动HTTP代理
 	if cfg.HTTP.Enabled {
 		go func() {
